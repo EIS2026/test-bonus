@@ -1,0 +1,50 @@
+# ============================================
+# デジタルツイン演習 Day 2 テンプレート .gitignore
+# ============================================
+
+# OS が自動生成するファイル
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# エディタの設定/一時ファイル
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker / ROS 2 系
+*.tar
+*.tar.gz
+*.tgz
+build/
+install/
+log/
+*.bag
+*.db3
+.colcon/
+
+# 一時ファイル
+*.tmp
+*.log
+*.cache
+
+# 機密情報
+.env
+.env.local
+*.key
+*.pem
+*.p12
+credentials.json
+secrets.yaml
+
+# 大きな添付ファイル（誤コミット防止）
+*.zip
+*.7z
+*.iso
+*.mp4
+*.mov
+
+# 注意: map.pgm / map.yaml は提出物なので無視しない
+# （提出物/maps/ 配下は除外しないこと）

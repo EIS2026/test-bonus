@@ -1,0 +1,164 @@
+name: Autograding Tests
+
+'on':
+  - push
+  - repository_dispatch
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  # ============================================================
+  # Job 1: 提出物のチェック（5 ステップ）
+  # ============================================================
+  submission-checks:
+    name: 📋 提出物チェック (Day 2)
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+
+    outputs:
+      step1-result: ${{ steps.step1.outputs.result }}
+      step2-result: ${{ steps.step2.outputs.result }}
+      step3-result: ${{ steps.step3.outputs.result }}
+      step4-result: ${{ steps.step4.outputs.result }}
+      step5-result: ${{ steps.step5.outputs.result }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: 'step1: 学籍番号・氏名が記入されている（プレースホルダから変更済）'
+        id: step1
+        uses: classroom-resources/autograding-command-grader@v1
+        continue-on-error: true
+        with:
+          test-name: 'step1: 学籍番号・氏名 記入済み'
+          setup-command: ''
+          command: '! grep -qE "1256xxx|◯◯ ◯◯" 提出物/COMPLETED.md'
+          timeout: 1
+          max-score: 1
+
+      - name: 'step2: COMPLETED.md のチェックボックスに [x] が 3 個以上'
+        id: step2
+        uses: classroom-resources/autograding-command-grader@v1
+        continue-on-error: true
+        with:
+          test-name: 'step2: チェックボックス 3 個以上記入'
+          setup-command: ''
+          command: 'test $(grep -cE "^- \[x\]" 提出物/COMPLETED.md) -ge 3'
+          timeout: 1
+          max-score: 1
+
+      - name: 'step3: 必須スクショ 3 枚（slam・map・nav）すべて提出'
+        id: step3
+        uses: classroom-resources/autograding-command-grader@v1
+        continue-on-error: true
+        with:
+          test-name: 'step3: 必須スクショ 3 枚（slam・map・nav）'
+          setup-command: ''
+          command: 'test -f 提出物/screenshots/day2-1-slam.png -a -f 提出物/screenshots/day2-2-map.png -a -f 提出物/screenshots/day2-3-nav.png'
+          timeout: 1
+          max-score: 1
+
+      - name: 'step4: SLAM で作成した地図ファイル (map.pgm または map.yaml) が提出されている'
+        id: step4
+        uses: classroom-resources/autograding-command-grader@v1
+        continue-on-error: true
+        with:
+          test-name: 'step4: 地図ファイル 提出済み'
+          setup-command: ''
+          command: 'test -f 提出物/maps/map.pgm -o -f 提出物/maps/map.yaml'
+          timeout: 1
+          max-score: 1
+
+      - name: 'step5: COMPLETED.md の振り返り欄が記入されている'
+        id: step5
+        uses: classroom-resources/autograding-command-grader@v1
+        continue-on-error: true
+        with:
+          test-name: 'step5: 振り返り欄 記入済み'
+          setup-command: ''
+          # 「- 」のあとに何か文字が続いている行を 1 つ以上検出
+          command: 'grep -cE "^- .+\S" 提出物/COMPLETED.md | awk ''{exit ($1>=1)?0:1}'''
+          timeout: 1
+          max-score: 1
+
+      # ★加点（自動採点のスコアには集計しない）★
+      - name: '加点: day2-4-waypoint.png が提出されている（Waypoint モード）'
+        id: step6
+        continue-on-error: true
+        run: |
+          if [ -f 提出物/screenshots/day2-4-waypoint.png ]; then
+            echo "Waypoint スクショ提出あり"
+            exit 0
+          else
+            echo "Waypoint スクショ提出なし"
+            exit 1
+          fi
+
+      - name: '📊 提出物チェック サマリー'
+        if: always()
+        run: |
+          echo "## 📋 デジタルツイン演習 Day 2 採点結果" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 必須項目（自動採点：5 点満点）" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| ステップ | 内容 | 結果 |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| step1 | 学籍番号・氏名 記入 | ${{ steps.step1.outcome == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| step2 | チェック [x] 3 個以上 | ${{ steps.step2.outcome == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| step3 | 必須スクショ 3 枚(slam・map・nav) | ${{ steps.step3.outcome == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| step4 | 地図ファイル 提出 | ${{ steps.step4.outcome == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| step5 | 振り返り欄 記入 | ${{ steps.step5.outcome == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 加点（任意・教員が後日加算）" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| 項目 | 内容 | 結果 |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 加点 | day2-4-waypoint.png 提出（Waypoint） | ${{ steps.step6.outcome == 'success' && '✅ +1 点' || '❌ なし' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> 加点は自動採点のスコアには含まれません。教員が後日確認の上で加算します。" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================
+  # Job 2: 採点レポーター
+  # ============================================================
+  reporter:
+    name: 🎯 採点レポーター
+    runs-on: ubuntu-latest
+    needs: [submission-checks]
+    if: always() && github.actor != 'github-classroom[bot]'
+
+    steps:
+      - name: 'Autograding Reporter'
+        uses: classroom-resources/autograding-grading-reporter@v1
+        continue-on-error: true
+        env:
+          STEP1_RESULTS: ${{ needs.submission-checks.outputs.step1-result }}
+          STEP2_RESULTS: ${{ needs.submission-checks.outputs.step2-result }}
+          STEP3_RESULTS: ${{ needs.submission-checks.outputs.step3-result }}
+          STEP4_RESULTS: ${{ needs.submission-checks.outputs.step4-result }}
+          STEP5_RESULTS: ${{ needs.submission-checks.outputs.step5-result }}
+        with:
+          runners: step1,step2,step3,step4,step5
+
+      - name: '📣 全体サマリー'
+        if: always()
+        run: |
+          echo "## 🎯 Day 2 採点まとめ" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "💡 **このワークフローは常に「成功」(緑) で完了します。**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "実際の点数（X/5）は、このページ上部の **「📋 提出物チェック」のサマリー表** の ✅ / ❌ で確認してください。" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 配点" >> $GITHUB_STEP_SUMMARY
+          echo "- step1: 学籍番号・氏名 記入: 1 点" >> $GITHUB_STEP_SUMMARY
+          echo "- step2: チェック [x] 3 個以上: 1 点" >> $GITHUB_STEP_SUMMARY
+          echo "- step3: 必須スクショ 3 枚（slam・map・nav）: 1 点" >> $GITHUB_STEP_SUMMARY
+          echo "- step4: 地図ファイル 提出: 1 点" >> $GITHUB_STEP_SUMMARY
+          echo "- step5: 振り返り欄 記入: 1 点" >> $GITHUB_STEP_SUMMARY
+          echo "- **合計: 5 点（Day 2）**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 加点（自動採点には含まれません）" >> $GITHUB_STEP_SUMMARY
+          echo "- day2-4-waypoint.png 提出: +1 点（教員が後日加算）" >> $GITHUB_STEP_SUMMARY
