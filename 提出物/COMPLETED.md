@@ -2,16 +2,16 @@
 
 ## 1. 基本情報
 
-- **学籍番号**: 1256xxx
-- **氏名**: ◯◯ ◯◯
+- **学籍番号**: 1256999
+- **氏名**: テスト 太郎
 
 ## 2. Day 2 チェックリスト（できたら [x] に書き換え）
 
 ### SLAM（地図作成）
 
-- [ ] `turtlebot3_cartographer` で SLAM を起動できた
-- [ ] RViz で地図が広がっていく様子を観察できた
-- [ ] teleop または turtlebot3_drive でロボットを動かし、地図を広げた
+- [x] `turtlebot3_cartographer` で SLAM を起動できた
+- [x] RViz で地図が広がっていく様子を観察できた
+- [x] teleop または turtlebot3_drive でロボットを動かし、地図を広げた
 - [ ] `nav2_map_server map_saver_cli` で地図（map.pgm / map.yaml）を保存できた
 - [ ] 保存した地図を `提出物/maps/` にコピーした
 
@@ -56,7 +56,7 @@
 
 ### Q1. SLAM とは何か、自分の言葉で説明してください（Simultaneous Localization and Mapping の意味を踏まえて）
 
--
+- SLAM は自己位置推定と地図作成を同時に行う技術。
 
 ### Q2. Navigation2 の自己位置推定（AMCL）と経路計画（Path Planning）について、観察したことを書いてください
 
